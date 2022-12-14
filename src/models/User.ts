@@ -25,6 +25,12 @@ export class User {
         this.rooms.delete(room);
     }
 
+    leaveAllRoom() {
+        for (let room of Array.from(this.rooms)) {
+            this.leaveRoom(room);
+        }
+    }
+
     sendPrivateMessage(message: Message, recipient: User) {
         for (let room of Array.from(this.rooms)) {
             if (room.users.has(this) && room.users.has(recipient) && room.name !== "Lobby") {

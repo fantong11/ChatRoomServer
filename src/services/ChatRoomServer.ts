@@ -1,17 +1,18 @@
 import { Server } from "http";
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { DirectMessage, Message, PublicMessage } from "../models/Message";
+import { ConnectStrategy, CreatePrivateRoomStrategy, JoinStrategy, LeaveStategy, OnMessageStrategy, SendPrivateStrategy, SendPublicStrategy } from "../interfaces/MessageStrategy";
 import { Room } from "../models/Room";
-import { User } from "../models/User";
-import { CommandType, MessageType } from "../types/types";
+import { UserList } from "../models/UserList";
+import { CommandType, ResponeData } from "../types/types";
 
 export class ChatRoomServer {
     webSocketServer: WebSocketServer;
     rooms: Map<string, Room>;
-    users: User[];
+    users: UserList;
+    onMessageStrategy: OnMessageStrategy | undefined;
 
     constructor(server: Server) {
-        this.users = [];
+        this.users = new UserList();
         this.rooms = new Map();
         this.webSocketServer = new WebSocketServer({ server });
     }
@@ -23,26 +24,6 @@ export class ChatRoomServer {
 
     deleteRoom(name: string) {
         this.rooms.delete(name);
-    }
-
-    getUserRoom(user: User) {
-        for (let room of this.rooms.values()) {
-            if (room.users.has(user)) {
-                return room;
-            }
-        }
-    }
-
-    getUserByUsername(username: string) {
-        for (let user of this.users) {
-            if (user.name === username) return user;
-        }
-    }
-
-    getUserByWebSocket(ws: WebSocket) {
-        for (let user of this.users) {
-            if (user.client === ws) return user;
-        }
     }
 
     run() {
@@ -60,76 +41,50 @@ export class ChatRoomServer {
 
     onMessage(ws: WebSocket, data: RawData) {
         let dataString = data.toString();
-        console.log(dataString);
+        let responeJson: ResponeData = JSON.parse(dataString);
+        console.log(responeJson);
 
-        let messageJson: MessageType = JSON.parse(dataString);
-        console.log(messageJson);
+        switch (responeJson.command) {
+            case CommandType.Join:
+                this.onMessageStrategy = new JoinStrategy();
+                break;
 
-        if (messageJson.command === CommandType.Join) {
-            let roomName = messageJson.roomName;
-            let user = this.getUserByWebSocket(ws);
-            if (user) {
-                let room = this.rooms.get(roomName);
-                if (room) {
-                    user.joinRoom(room);
-                }
-            }
-        }
-        else if (messageJson.command === CommandType.Leave) {
-            let roomName = messageJson.roomName;
-            let user = this.getUserByWebSocket(ws);
-            if (user) {
-                let room = this.rooms.get(roomName);
-                if (room) {
-                    user.leaveRoom(room);
-                }
-            }
-        }
-        else if (messageJson.command === CommandType.SendPrivate) {
-            let message = new DirectMessage(messageJson);
-            let user = this.getUserByWebSocket(ws);
-            let recipient = this.getUserByUsername(messageJson.recipientName);
-            if (user && recipient) {
-                user.sendPrivateMessage(message, recipient);
-            }
-        }
-        else if (messageJson.command === CommandType.SendPublic) {
-            let message = new PublicMessage(messageJson);
-            let room = this.rooms.get("Lobby");
-            if (room) {
-                room.sendMessage(message);
-            }
-        }
-        else if (messageJson.command === CommandType.Connect) {
-            let user = new User(messageJson.username, ws);
-            this.users.push(user);
+            case CommandType.Leave:
+                this.onMessageStrategy = new LeaveStategy();
+                break;
 
-            let room = this.rooms.get("Lobby");
-            if (room) {
-                user.joinRoom(room);
-            }
-        }
-        else if (messageJson.command === CommandType.CreatePrivateRoom) {
-            let user = this.getUserByWebSocket(ws);
-            let recipient = this.getUserByUsername(messageJson.recipientName);
-            
-            let room: Room;
+            case CommandType.Connect:
+                this.onMessageStrategy = new ConnectStrategy();
+                break;
 
-            if (this.rooms.has(messageJson.roomName)) {
-                room = this.rooms.get(messageJson.roomName)!;
-            }
-            else {
-                room = new Room(`${user?.name}${recipient?.name}`);
-            }
-            if (room && user && recipient) {
-                user.joinRoom(room);
-                recipient.joinRoom(room);
-            }
+            case CommandType.SendPrivate:
+                this.onMessageStrategy = new SendPrivateStrategy();
+                break;
+
+            case CommandType.SendPublic:
+                this.onMessageStrategy = new SendPublicStrategy();
+                break;
+
+            case CommandType.CreatePrivateRoom:
+                this.onMessageStrategy = new CreatePrivateRoomStrategy();
+                break;
         }
+
+        this.onMessageStrategy.doStrategy({
+            responeJson: responeJson,
+            ws: ws,
+            userList: this.users,
+            rooms: this.rooms
+        });
     }
 
     onClose(ws: WebSocket) {
         console.log('Close Connected');
-        this.users = this.users.filter(user => user.client !== ws);
+        const user = this.users.getUserByWebSocket(ws)
+        if (user) {
+            user.leaveAllRoom();
+            this.users.deleteUser(user)
+        }
+
     }
 }

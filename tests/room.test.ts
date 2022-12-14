@@ -3,7 +3,7 @@ import http from "http";
 import { startServer, waitForSocketState, users, resetUsers } from "./webSocketTestUtils";
 import { Room } from "../src/models/Room";
 import { PublicMessage } from "../src/models/Message";
-import { CommandType, MessageType } from "../src/types/types";
+import { CommandType, MessageData } from "../src/types/types";
 
 const port = 3001;
 
@@ -72,7 +72,7 @@ describe("Room Test", () => {
         let responseMessage: string[] = [];
 
         client1.on("message", data => {
-            let response: MessageType = JSON.parse(data.toString());
+            let response: MessageData = JSON.parse(data.toString());
             responseMessage.push(response.message);
         });
         client2.on("message", data => {
