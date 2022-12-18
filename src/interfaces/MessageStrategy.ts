@@ -1,81 +1,100 @@
 import { DirectMessage, PublicMessage } from "../models/Message";
 import { Room } from "../models/Room";
 import { User } from "../models/User";
-import { DoOnMessageStrategyType, ResponeData } from "../types/types";
+import { DoOnMessageStrategyType, StatusType } from "../types/types";
 
 export interface OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void;
 }
 
-export class JoinStrategy implements OnMessageStrategy{
+export class JoinStrategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const messageData = doStrategyType.responeJson.messageData;
-        const userList = doStrategyType.userList;
-        const ws = doStrategyType.ws;
-        const rooms = doStrategyType.rooms;
-        
+        const { responeJson, userList, ws, rooms } = doStrategyType;
+        const messageData = responeJson.messageData;
+
         const user = userList.getUserByWebSocket(ws);
         const room = rooms.get(messageData.roomName);
         if (user && room) {
             user.joinRoom(room);
+            ws.send({
+                status: StatusType.Success, 
+                message: "Join room success."
+            });
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Join room error."
+        });
     }
 
 }
 
 export class LeaveStategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const messageData = doStrategyType.responeJson.messageData;
-        const userList = doStrategyType.userList;
-        const ws = doStrategyType.ws;
-        const rooms = doStrategyType.rooms;
-        
+        const { responeJson, userList, ws, rooms } = doStrategyType;
+        const messageData = responeJson.messageData;
+
         const user = userList.getUserByWebSocket(ws);
         const room = rooms.get(messageData.roomName);
         if (user && room) {
             user.leaveRoom(room);
+            ws.send({
+                status: StatusType.Success, 
+                message: "Leave room success."
+            });
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Leave room error."
+        });
     }
 }
 
 export class SendPrivateStrategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const responeJson = doStrategyType.responeJson;
-        const userList = doStrategyType.userList;
-        const ws = doStrategyType.ws;
+        const { responeJson, userList, ws } = doStrategyType;
 
-        const message = new DirectMessage(responeJson);
         const user = userList.getUserByWebSocket(ws);
         const recipient = userList.getUserByUsername(responeJson.messageData.recipientName)
 
         if (user && recipient) {
+            const message = new DirectMessage(responeJson);
             user.sendPrivateMessage(message, recipient);
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Send public message error."
+        });
     }
 
 }
 
 export class SendPublicStrategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const responeJson = doStrategyType.responeJson;
-        const rooms = doStrategyType.rooms;
+        const { responeJson, rooms, ws } = doStrategyType;
 
-        const message = new PublicMessage(responeJson);
         const room = rooms.get("Lobby");
 
         if (room) {
+            const message = new PublicMessage(responeJson);
             room.sendMessage(message);
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Send public message error."
+        });
     }
 
 }
 
 export class ConnectStrategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const messageData = doStrategyType.responeJson.messageData;
-        const userList = doStrategyType.userList;
-        const ws = doStrategyType.ws; 
-        const rooms = doStrategyType.rooms;
+        const { responeJson, userList, ws, rooms } = doStrategyType;
+        const messageData = responeJson.messageData;
 
         const user = new User(messageData.username, ws);
         const room = rooms.get("Lobby");
@@ -83,16 +102,23 @@ export class ConnectStrategy implements OnMessageStrategy {
 
         if (room) {
             user.joinRoom(room);
+            ws.send({
+                status: StatusType.Success, 
+                message: "Join room success."
+            });
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Join room error."
+        });
     }
 }
 
 export class CreatePrivateRoomStrategy implements OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const messageData = doStrategyType.responeJson.messageData;
-        const userList = doStrategyType.userList;
-        const ws = doStrategyType.ws; 
-        const rooms = doStrategyType.rooms;
+        const { responeJson, userList, ws, rooms } = doStrategyType;
+        const messageData = responeJson.messageData;
 
         const user = userList.getUserByWebSocket(ws);
         const recipient = userList.getUserByUsername(messageData.recipientName);
@@ -110,6 +136,22 @@ export class CreatePrivateRoomStrategy implements OnMessageStrategy {
             console.log("Private room created");
             user.joinRoom(room);
             recipient.joinRoom(room);
+            ws.send({
+                status: StatusType.Success, 
+                message: "Join room success."}
+            );
+            return;
         }
+        ws.send({
+            status: StatusType.Error, 
+            message: "Join room error."
+        });
+    }
+}
+
+export class GetUserListStrategy implements OnMessageStrategy {
+    doStrategy(doStrategyType: DoOnMessageStrategyType): void {
+        const { userList, ws } = doStrategyType;
+        ws.send(userList.toJSON());
     }
 }

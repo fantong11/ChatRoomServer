@@ -29,3 +29,13 @@ export interface DoOnMessageStrategyType {
     userList: UserList,
     rooms: Map<string, Room>,
 }
+
+export enum StatusType {
+    Success,
+    Error,
+}
+
+export interface WebSocketRespone {
+    status: StatusType,
+    message: string,
+}

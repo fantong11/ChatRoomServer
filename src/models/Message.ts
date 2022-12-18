@@ -1,6 +1,6 @@
 import { CommandType, ResponeData } from "../types/types";
 
-export class Message {
+export class Message  {
     username: string;
     message: string;
     command: CommandType;
@@ -16,14 +16,13 @@ export class Message {
     }
 }
 
-
 export class DirectMessage extends Message {
     recipientName: string;
     timeStamp: number;
 
-    constructor(messageJson: ResponeData) {
-        super(messageJson);
-        this.recipientName = messageJson.messageData.recipientName;
+    constructor(responeJson: ResponeData) {
+        super(responeJson);
+        this.recipientName = responeJson.messageData.recipientName;
         this.timeStamp = Date.now();
     }
 
@@ -42,9 +41,9 @@ export class PublicMessage extends Message {
     roomName: string;
     timeStamp: number;
 
-    constructor(messageJson: ResponeData) {
-        super(messageJson);
-        this.roomName = messageJson.messageData.roomName;
+    constructor(responeJson: ResponeData) {
+        super(responeJson);
+        this.roomName = responeJson.messageData.roomName;
         this.timeStamp = Date.now();
     }
 

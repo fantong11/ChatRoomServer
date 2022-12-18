@@ -9,12 +9,23 @@ export class ChatRoomServer {
     webSocketServer: WebSocketServer;
     rooms: Map<string, Room>;
     users: UserList;
-    onMessageStrategy: OnMessageStrategy | undefined;
+    onMessageStrategyTest: Map<CommandType, OnMessageStrategy>;
 
     constructor(server: Server) {
+        this.webSocketServer = new WebSocketServer({ server });
         this.users = new UserList();
         this.rooms = new Map();
-        this.webSocketServer = new WebSocketServer({ server });
+        this.onMessageStrategyTest = new Map();
+        this.initStrategy();
+    }
+
+    initStrategy() {
+        this.onMessageStrategyTest.set(CommandType.Join, new JoinStrategy());
+        this.onMessageStrategyTest.set(CommandType.Leave, new LeaveStategy());
+        this.onMessageStrategyTest.set(CommandType.SendPrivate, new SendPrivateStrategy());
+        this.onMessageStrategyTest.set(CommandType.SendPublic, new SendPublicStrategy());
+        this.onMessageStrategyTest.set(CommandType.Connect, new ConnectStrategy());
+        this.onMessageStrategyTest.set(CommandType.CreatePrivateRoom, new CreatePrivateRoomStrategy());
     }
 
     createRoom(name: string) {
@@ -44,38 +55,15 @@ export class ChatRoomServer {
         let responeJson: ResponeData = JSON.parse(dataString);
         console.log(responeJson);
 
-        switch (responeJson.command) {
-            case CommandType.Join:
-                this.onMessageStrategy = new JoinStrategy();
-                break;
-
-            case CommandType.Leave:
-                this.onMessageStrategy = new LeaveStategy();
-                break;
-
-            case CommandType.Connect:
-                this.onMessageStrategy = new ConnectStrategy();
-                break;
-
-            case CommandType.SendPrivate:
-                this.onMessageStrategy = new SendPrivateStrategy();
-                break;
-
-            case CommandType.SendPublic:
-                this.onMessageStrategy = new SendPublicStrategy();
-                break;
-
-            case CommandType.CreatePrivateRoom:
-                this.onMessageStrategy = new CreatePrivateRoomStrategy();
-                break;
+        const onMessageStrategy = this.onMessageStrategyTest.get(responeJson.command);
+        if (onMessageStrategy) {
+            onMessageStrategy.doStrategy({
+                responeJson: responeJson,
+                ws: ws,
+                userList: this.users,
+                rooms: this.rooms
+            });
         }
-
-        this.onMessageStrategy.doStrategy({
-            responeJson: responeJson,
-            ws: ws,
-            userList: this.users,
-            rooms: this.rooms
-        });
     }
 
     onClose(ws: WebSocket) {

@@ -26,4 +26,14 @@ export class UserList {
         }
     }
 
+    toJSON() {
+        let json = new Map();
+        let index = 0;
+
+        for (const [, user] of this.users) {
+            json.set(index++, user.toJSON());
+        }
+        return JSON.stringify(Object.fromEntries(json));
+    }
+
 }

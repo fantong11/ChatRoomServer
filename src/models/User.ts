@@ -38,4 +38,11 @@ export class User {
             }
         }
     }
+
+    toJSON() {
+        return {
+            avatar: this.avatar,
+            name: this.name,
+        }
+    }
 }
