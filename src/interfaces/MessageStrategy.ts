@@ -16,16 +16,16 @@ export class JoinStrategy implements OnMessageStrategy {
         const room = rooms.get(messageData.roomName);
         if (user && room) {
             user.joinRoom(room);
-            ws.send({
+            ws.send(JSON.stringify({
                 status: StatusType.Success, 
                 message: "Join room success."
-            });
+            }));
             return;
         }
-        ws.send({
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Join room error."
-        });
+        }));
     }
 
 }
@@ -45,10 +45,10 @@ export class LeaveStategy implements OnMessageStrategy {
             });
             return;
         }
-        ws.send({
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Leave room error."
-        });
+        }));
     }
 }
 
@@ -64,10 +64,10 @@ export class SendPrivateStrategy implements OnMessageStrategy {
             user.sendPrivateMessage(message, recipient);
             return;
         }
-        ws.send({
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Send public message error."
-        });
+        }));
     }
 
 }
@@ -83,10 +83,10 @@ export class SendPublicStrategy implements OnMessageStrategy {
             room.sendMessage(message);
             return;
         }
-        ws.send({
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Send public message error."
-        });
+        }));
     }
 
 }
@@ -102,16 +102,18 @@ export class ConnectStrategy implements OnMessageStrategy {
 
         if (room) {
             user.joinRoom(room);
-            ws.send({
+            
+            ws.send(JSON.stringify({
                 status: StatusType.Success, 
                 message: "Join room success."
-            });
+            }));
             return;
         }
-        ws.send({
+        
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Join room error."
-        });
+        }));
     }
 }
 
@@ -136,16 +138,16 @@ export class CreatePrivateRoomStrategy implements OnMessageStrategy {
             console.log("Private room created");
             user.joinRoom(room);
             recipient.joinRoom(room);
-            ws.send({
+            ws.send(JSON.stringify({
                 status: StatusType.Success, 
-                message: "Join room success."}
-            );
+                message: "Join room success."
+            }));
             return;
         }
-        ws.send({
+        ws.send(JSON.stringify({
             status: StatusType.Error, 
             message: "Join room error."
-        });
+        }));
     }
 }
 
