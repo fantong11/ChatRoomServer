@@ -1,7 +1,8 @@
 import express from 'express';
+import * as dotenv from 'dotenv';
 import { ChatRoomServer } from './services/ChatRoomServer';
 
-const PORT = 3000;
+dotenv.config();
 
 const app = express();
 
@@ -9,8 +10,8 @@ app.get('/', (req, res) => {
     res.send('The server is working!');
   });
 
-const server = app.listen(PORT, () => {
-    console.log(`Listening on ${PORT}`);
+const server = app.listen(process.env.PORT, () => {
+    console.log(`Listening on ${process.env.PORT}`);
 });
 
 new ChatRoomServer(server).run();
