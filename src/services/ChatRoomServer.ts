@@ -1,6 +1,6 @@
 import { Server } from "http";
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { ConnectStrategy, CreatePrivateRoomStrategy, GetUserListStrategy, JoinStrategy, LeaveStategy, OnMessageStrategy, SendPrivateStrategy, SendPublicStrategy } from "../interfaces/MessageStrategy";
+import { ConnectStrategy, CreatePrivateRoomStrategy, JoinStrategy, LeaveStategy, OnMessageStrategy, SendPrivateStrategy, SendPublicStrategy } from "../interfaces/MessageStrategy";
 import { Room } from "../models/Room";
 import { UserList } from "../models/UserList";
 import { CommandType, ResponeData } from "../types/types";
@@ -26,7 +26,6 @@ export class ChatRoomServer {
         this.onMessageStrategyTest.set(CommandType.SendPublic, new SendPublicStrategy());
         this.onMessageStrategyTest.set(CommandType.Connect, new ConnectStrategy());
         this.onMessageStrategyTest.set(CommandType.CreatePrivateRoom, new CreatePrivateRoomStrategy());
-        this.onMessageStrategyTest.set(CommandType.GetUserList, new GetUserListStrategy());
     }
 
     createRoom(name: string) {

@@ -102,11 +102,7 @@ export class ConnectStrategy implements OnMessageStrategy {
 
         if (room) {
             user.joinRoom(room);
-            
-            ws.send(JSON.stringify({
-                status: StatusType.Success, 
-                message: "Join room success."
-            }));
+            room.sendMessage(userList);
             return;
         }
         
@@ -148,12 +144,5 @@ export class CreatePrivateRoomStrategy implements OnMessageStrategy {
             status: StatusType.Error, 
             message: "Join room error."
         }));
-    }
-}
-
-export class GetUserListStrategy implements OnMessageStrategy {
-    doStrategy(doStrategyType: DoOnMessageStrategyType): void {
-        const { userList, ws } = doStrategyType;
-        ws.send(userList.toJSON());
     }
 }

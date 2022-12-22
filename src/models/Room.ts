@@ -19,7 +19,7 @@ export class Room {
         this.users.delete(user);
     }
 
-    sendMessage(message: Message) {
+    sendMessage<T>(message: T) {
         let jsonString = JSON.stringify(message);
 
         this.users.forEach(user => {
