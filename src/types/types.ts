@@ -22,7 +22,7 @@ export enum CommandType {
     SendPublic,
     Connect,
     CreatePrivateRoom,
-    GetUserList
+    UpdateUserList
 }
 
 export interface DoOnMessageStrategyType {

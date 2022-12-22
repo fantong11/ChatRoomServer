@@ -68,10 +68,15 @@ export class ChatRoomServer {
 
     onClose(ws: WebSocket) {
         console.log('Close Connected');
-        const user = this.users.getUserByWebSocket(ws)
-        if (user) {
+        const user = this.users.getUserByWebSocket(ws);
+        const lobby = this.rooms.get("Lobby");
+        if (user && lobby) {
             user.leaveAllRoom();
-            this.users.deleteUser(user)
+            this.users.deleteUser(user);
+            lobby.sendMessage({
+                command: CommandType.UpdateUserList,
+                users: this.users
+            });
         }
 
     }

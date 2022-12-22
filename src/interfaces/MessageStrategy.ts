@@ -1,7 +1,7 @@
 import { DirectMessage, PublicMessage } from "../models/Message";
 import { Room } from "../models/Room";
 import { User } from "../models/User";
-import { DoOnMessageStrategyType, StatusType } from "../types/types";
+import { CommandType, DoOnMessageStrategyType, StatusType } from "../types/types";
 
 export interface OnMessageStrategy {
     doStrategy(doStrategyType: DoOnMessageStrategyType): void;
@@ -102,7 +102,10 @@ export class ConnectStrategy implements OnMessageStrategy {
 
         if (room) {
             user.joinRoom(room);
-            room.sendMessage(userList);
+            room.sendMessage({
+                command: CommandType.UpdateUserList,
+                users: userList
+            });
             return;
         }
         
