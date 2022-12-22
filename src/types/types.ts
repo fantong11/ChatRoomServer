@@ -14,6 +14,7 @@ export interface MessageData {
     recipientName: string
 }
 
+
 export enum CommandType {
     Join,
     Leave,
@@ -21,6 +22,7 @@ export enum CommandType {
     SendPublic,
     Connect,
     CreatePrivateRoom,
+    GetUserList
 }
 
 export interface DoOnMessageStrategyType {
