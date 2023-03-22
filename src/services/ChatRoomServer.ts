@@ -9,23 +9,23 @@ export class ChatRoomServer {
     webSocketServer: WebSocketServer;
     rooms: Map<string, Room>;
     users: UserList;
-    onMessageStrategyTest: Map<CommandType, OnMessageStrategy>;
+    onMessageStrategy: Map<CommandType, OnMessageStrategy>;
 
     constructor(server: Server) {
         this.webSocketServer = new WebSocketServer({ server });
         this.users = new UserList();
         this.rooms = new Map();
-        this.onMessageStrategyTest = new Map();
+        this.onMessageStrategy = new Map();
         this.initStrategy();
     }
 
     initStrategy() {
-        this.onMessageStrategyTest.set(CommandType.Join, new JoinStrategy());
-        this.onMessageStrategyTest.set(CommandType.Leave, new LeaveStategy());
-        this.onMessageStrategyTest.set(CommandType.SendPrivate, new SendPrivateStrategy());
-        this.onMessageStrategyTest.set(CommandType.SendPublic, new SendPublicStrategy());
-        this.onMessageStrategyTest.set(CommandType.Connect, new ConnectStrategy());
-        this.onMessageStrategyTest.set(CommandType.CreatePrivateRoom, new CreatePrivateRoomStrategy());
+        this.onMessageStrategy.set(CommandType.Join, new JoinStrategy());
+        this.onMessageStrategy.set(CommandType.Leave, new LeaveStategy());
+        this.onMessageStrategy.set(CommandType.SendPrivate, new SendPrivateStrategy());
+        this.onMessageStrategy.set(CommandType.SendPublic, new SendPublicStrategy());
+        this.onMessageStrategy.set(CommandType.Connect, new ConnectStrategy());
+        this.onMessageStrategy.set(CommandType.CreatePrivateRoom, new CreatePrivateRoomStrategy());
     }
 
     createRoom(name: string) {
@@ -55,7 +55,7 @@ export class ChatRoomServer {
         let responeJson: ResponeData = JSON.parse(dataString);
         console.log(responeJson);
 
-        const onMessageStrategy = this.onMessageStrategyTest.get(responeJson.command);
+        const onMessageStrategy = this.onMessageStrategy.get(responeJson.command);
         if (onMessageStrategy) {
             onMessageStrategy.doStrategy({
                 responeJson: responeJson,
